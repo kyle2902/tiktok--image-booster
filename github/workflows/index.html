@@ -1,151 +1,175 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>AI Image Upscaler</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Image Upscaler</title>
 
-  <style>
-    * {
-      box-sizing: border-box;
-    }
+<style>
+* {
+  box-sizing: border-box;
+}
 
-    body {
-      margin: 0;
-      font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
-      background: #f5f5f7;
-      color: #1d1d1f;
-    }
+body {
+  margin: 0;
+  background: #f5f5f7;
+  color: #1d1d1f;
+  font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
+}
 
-    .container {
-      max-width: 500px;
-      margin: 0 auto;
-      padding: 40px 20px;
-    }
+.container {
+  max-width: 520px;
+  margin: auto;
+  padding: 35px 20px;
+}
 
-    h1 {
-      text-align: center;
-      font-size: 28px;
-      margin-bottom: 8px;
-    }
+h1 {
+  text-align: center;
+  font-size: 30px;
+  margin-bottom: 8px;
+}
 
-    .subtitle {
-      text-align: center;
-      color: #6e6e73;
-      margin-bottom: 30px;
-    }
+.subtitle {
+  text-align: center;
+  color: #6e6e73;
+  margin-bottom: 30px;
+}
 
-    .upload {
-      background: white;
-      border-radius: 20px;
-      padding: 35px 20px;
-      text-align: center;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.06);
-    }
+.card {
+  background: white;
+  padding: 25px;
+  border-radius: 22px;
+  box-shadow: 0 5px 25px rgba(0,0,0,.07);
+}
 
-    input[type="file"] {
-      display: none;
-    }
+.upload {
+  display: block;
+  width: 100%;
+  padding: 16px;
+  text-align: center;
+  background: #007aff;
+  color: white;
+  border-radius: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
 
-    .button {
-      display: inline-block;
-      background: #007aff;
-      color: white;
-      padding: 14px 24px;
-      border-radius: 14px;
-      font-size: 16px;
-      font-weight: 600;
-      cursor: pointer;
-    }
+input {
+  display: none;
+}
 
-    #preview {
-      width: 100%;
-      margin-top: 25px;
-      border-radius: 15px;
-      display: none;
-    }
+.preview {
+  width: 100%;
+  margin-top: 20px;
+  border-radius: 15px;
+  display: none;
+}
 
-    .info {
-      margin-top: 20px;
-      font-size: 14px;
-      color: #6e6e73;
-    }
+.info {
+  margin-top: 15px;
+  font-size: 14px;
+  color: #6e6e73;
+  text-align: center;
+}
 
-    .upscale {
-      width: 100%;
-      margin-top: 20px;
-      padding: 15px;
-      border: none;
-      border-radius: 14px;
-      background: #1d1d1f;
-      color: white;
-      font-size: 16px;
-      font-weight: 600;
-      display: none;
-    }
+button {
+  width: 100%;
+  margin-top: 20px;
+  padding: 16px;
+  border: 0;
+  border-radius: 14px;
+  background: #1d1d1f;
+  color: white;
+  font-size: 16px;
+  font-weight: 600;
+  display: none;
+}
 
-    .message {
-      text-align: center;
-      margin-top: 20px;
-      color: #6e6e73;
-      font-size: 14px;
-    }
-  </style>
+button:active {
+  opacity: .7;
+}
+
+#result {
+  width: 100%;
+  margin-top: 20px;
+  border-radius: 15px;
+  display: none;
+}
+
+#download {
+  display: none;
+  margin-top: 15px;
+  text-align: center;
+  text-decoration: none;
+  padding: 15px;
+  background: #34c759;
+  color: white;
+  border-radius: 14px;
+  font-weight: 600;
+}
+</style>
 </head>
 
 <body>
 
-  <div class="container">
+<div class="container">
 
-    <h1>AI Image Upscaler</h1>
+<h1>Image Upscaler</h1>
 
-    <div class="subtitle">
-      画像を高解像度にアップスケール
-    </div>
+<div class="subtitle">
+画像を高解像度にアップスケール
+</div>
 
-    <div class="upload">
+<div class="card">
 
-      <label for="imageInput" class="button">
-        画像を選択
-      </label>
+<label class="upload" for="imageInput">
+画像を選択
+</label>
 
-      <input
-        type="file"
-        id="imageInput"
-        accept="image/*"
-      >
+<input
+  id="imageInput"
+  type="file"
+  accept="image/*"
+>
 
-      <img id="preview">
+<img id="preview" class="preview">
 
-      <div id="info" class="info">
-        iPhoneから画像を選択してください
-      </div>
+<div id="info" class="info">
+画像を選択してください
+</div>
 
-      <button id="upscaleButton" class="upscale">
-        高解像度化する
-      </button>
+<button id="upscale">
+2倍にアップスケール
+</button>
 
-    </div>
+<img id="result">
 
-    <div id="message" class="message"></div>
+<a id="download" download="upscaled-image.png">
+画像を保存
+</a>
 
-  </div>
+</div>
+
+</div>
 
 <script>
 
-const imageInput = document.getElementById("imageInput");
+const input = document.getElementById("imageInput");
 const preview = document.getElementById("preview");
 const info = document.getElementById("info");
-const upscaleButton = document.getElementById("upscaleButton");
-const message = document.getElementById("message");
+const button = document.getElementById("upscale");
+const result = document.getElementById("result");
+const download = document.getElementById("download");
 
-imageInput.addEventListener("change", function() {
+let selectedImage = null;
+
+input.addEventListener("change", function() {
 
   const file = this.files[0];
 
-  if (!file) {
-    return;
-  }
+  if (!file) return;
+
+  selectedImage = file;
 
   const url = URL.createObjectURL(file);
 
@@ -153,18 +177,55 @@ imageInput.addEventListener("change", function() {
   preview.style.display = "block";
 
   info.textContent =
-    file.name + " を選択しました";
+    `${file.name} を選択しました`;
 
-  upscaleButton.style.display = "block";
+  button.style.display = "block";
 
-  message.textContent = "";
+  result.style.display = "none";
+  download.style.display = "none";
 
 });
 
-upscaleButton.addEventListener("click", function() {
+button.addEventListener("click", function() {
 
-  message.textContent =
-    "現在、高解像度化の準備中です…";
+  if (!selectedImage) return;
+
+  const img = new Image();
+
+  img.onload = function() {
+
+    const canvas = document.createElement("canvas");
+
+    canvas.width = img.width * 2;
+    canvas.height = img.height * 2;
+
+    const ctx = canvas.getContext("2d");
+
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = "high";
+
+    ctx.drawImage(
+      img,
+      0,
+      0,
+      canvas.width,
+      canvas.height
+    );
+
+    const output = canvas.toDataURL("image/png");
+
+    result.src = output;
+    result.style.display = "block";
+
+    download.href = output;
+    download.style.display = "block";
+
+    info.textContent =
+      `${img.width} × ${img.height} → ${canvas.width} × ${canvas.height}`;
+
+  };
+
+  img.src = URL.createObjectURL(selectedImage);
 
 });
 
