@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Image Upscaler</title>
+<title>AI Image Upscaler</title>
 
 <style>
 * {
@@ -26,7 +26,6 @@ body {
 h1 {
   text-align: center;
   font-size: 30px;
-  margin-bottom: 8px;
 }
 
 .subtitle {
@@ -39,7 +38,6 @@ h1 {
   background: white;
   padding: 25px;
   border-radius: 22px;
-  box-shadow: 0 5px 25px rgba(0,0,0,.07);
 }
 
 .upload {
@@ -51,14 +49,14 @@ h1 {
   color: white;
   border-radius: 14px;
   font-weight: 600;
-  cursor: pointer;
 }
 
 input {
   display: none;
 }
 
-.preview {
+.preview,
+#result {
   width: 100%;
   margin-top: 20px;
   border-radius: 15px;
@@ -72,7 +70,37 @@ input {
   text-align: center;
 }
 
-button {
+.settings {
+  margin-top: 20px;
+  display: none;
+}
+
+.settings-title {
+  font-weight: 600;
+  margin-bottom: 10px;
+}
+
+.scale-buttons {
+  display: flex;
+  gap: 10px;
+}
+
+.scale {
+  flex: 1;
+  padding: 13px;
+  border: 1px solid #ddd;
+  border-radius: 12px;
+  background: white;
+  font-weight: 600;
+}
+
+.scale.selected {
+  background: #007aff;
+  color: white;
+  border-color: #007aff;
+}
+
+button#upscale {
   width: 100%;
   margin-top: 20px;
   padding: 16px;
@@ -85,23 +113,18 @@ button {
   display: none;
 }
 
-button:active {
-  opacity: .7;
-}
-
-#result {
-  width: 100%;
+#message {
+  text-align: center;
   margin-top: 20px;
-  border-radius: 15px;
-  display: none;
+  color: #6e6e73;
 }
 
 #download {
   display: none;
   margin-top: 15px;
+  padding: 15px;
   text-align: center;
   text-decoration: none;
-  padding: 15px;
   background: #34c759;
   color: white;
   border-radius: 14px;
@@ -114,10 +137,10 @@ button:active {
 
 <div class="container">
 
-<h1>Image Upscaler</h1>
+<h1>AI Image Upscaler</h1>
 
 <div class="subtitle">
-画像を高解像度にアップスケール
+AIで画像を高解像度化
 </div>
 
 <div class="card">
@@ -126,11 +149,7 @@ button:active {
 画像を選択
 </label>
 
-<input
-  id="imageInput"
-  type="file"
-  accept="image/*"
->
+<input id="imageInput" type="file" accept="image/*">
 
 <img id="preview" class="preview">
 
@@ -138,14 +157,36 @@ button:active {
 画像を選択してください
 </div>
 
-<button id="upscale">
-2倍にアップスケール
+<div id="settings" class="settings">
+
+<div class="settings-title">
+出力設定
+</div>
+
+<div class="scale-buttons">
+
+<button class="scale selected" data-scale="2">
+×2
 </button>
+
+<button class="scale" data-scale="4">
+×4
+</button>
+
+</div>
+
+</div>
+
+<button id="upscale">
+AIで高画質化する
+</button>
+
+<div id="message"></div>
 
 <img id="result">
 
-<a id="download" download="upscaled-image.png">
-画像を保存
+<a id="download" download="ai-upscaled.png">
+高画質画像を保存
 </a>
 
 </div>
@@ -157,11 +198,14 @@ button:active {
 const input = document.getElementById("imageInput");
 const preview = document.getElementById("preview");
 const info = document.getElementById("info");
-const button = document.getElementById("upscale");
+const settings = document.getElementById("settings");
+const upscaleButton = document.getElementById("upscale");
+const message = document.getElementById("message");
 const result = document.getElementById("result");
 const download = document.getElementById("download");
 
-let selectedImage = null;
+let selectedFile = null;
+let selectedScale = 2;
 
 input.addEventListener("change", function() {
 
@@ -169,65 +213,126 @@ input.addEventListener("change", function() {
 
   if (!file) return;
 
-  selectedImage = file;
+  selectedFile = file;
 
-  const url = URL.createObjectURL(file);
-
-  preview.src = url;
+  preview.src = URL.createObjectURL(file);
   preview.style.display = "block";
 
-  info.textContent =
-    `${file.name} を選択しました`;
+  info.textContent = file.name;
 
-  button.style.display = "block";
+  settings.style.display = "block";
+  upscaleButton.style.display = "block";
 
   result.style.display = "none";
   download.style.display = "none";
+  message.textContent = "";
 
 });
 
-button.addEventListener("click", function() {
+document.querySelectorAll(".scale").forEach(button => {
 
-  if (!selectedImage) return;
+  button.addEventListener("click", function() {
 
-  const img = new Image();
+    document.querySelectorAll(".scale")
+      .forEach(b => b.classList.remove("selected"));
 
-  img.onload = function() {
+    this.classList.add("selected");
 
-    const canvas = document.createElement("canvas");
+    selectedScale = Number(this.dataset.scale);
 
-    canvas.width = img.width * 2;
-    canvas.height = img.height * 2;
+  });
 
-    const ctx = canvas.getContext("2d");
+});
 
-    ctx.imageSmoothingEnabled = true;
-    ctx.imageSmoothingQuality = "high";
+upscaleButton.addEventListener("click", async function() {
 
-    ctx.drawImage(
-      img,
-      0,
-      0,
-      canvas.width,
-      canvas.height
-    );
+  if (!selectedFile) return;
 
-    const output = canvas.toDataURL("image/png");
+  message.textContent = "AIで高画質化しています…";
+  upscaleButton.disabled = true;
 
-    result.src = output;
+  try {
+
+    /*
+      現在の画像をBase64に変換
+    */
+
+    const base64 = await fileToBase64(selectedFile);
+
+    const response = await fetch("/api/upscale", {
+
+      method: "POST",
+
+      headers: {
+        "Content-Type": "application/json"
+      },
+
+      body: JSON.stringify({
+        image: base64,
+        scaleFactor: selectedScale
+      })
+
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(
+        data.error
+          ? JSON.stringify(data.error)
+          : "AI処理に失敗しました"
+      );
+    }
+
+    /*
+      APIから返ってきた画像URLを表示
+    */
+
+    const outputUrl =
+      data.image_url ||
+      data.url ||
+      data.output_url;
+
+    if (!outputUrl) {
+      throw new Error("出力画像が見つかりませんでした");
+    }
+
+    result.src = outputUrl;
     result.style.display = "block";
 
-    download.href = output;
+    download.href = outputUrl;
     download.style.display = "block";
 
-    info.textContent =
-      `${img.width} × ${img.height} → ${canvas.width} × ${canvas.height}`;
+    message.textContent =
+      `AI高画質化完了（×${selectedScale}）`;
 
-  };
+  } catch (error) {
 
-  img.src = URL.createObjectURL(selectedImage);
+    console.error(error);
+
+    message.textContent =
+      "エラー: " + error.message;
+
+  }
+
+  upscaleButton.disabled = false;
 
 });
+
+function fileToBase64(file) {
+
+  return new Promise((resolve, reject) => {
+
+    const reader = new FileReader();
+
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = reject;
+
+    reader.readAsDataURL(file);
+
+  });
+
+}
 
 </script>
 
