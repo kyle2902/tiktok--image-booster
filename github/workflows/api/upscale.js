@@ -1,147 +1,219 @@
 export default async function handler(req, res) {
-  if (req.method !== "POST") {
-    return res.status(405).json({
-      error: "POST only"
+  const apiKey = process.env.MAGIC_HOUR_API_KEY;
+
+  if (!apiKey) {
+    return res.status(500).json({
+      error: "MAGIC_HOUR_API_KEY is not configured"
     });
   }
 
   try {
-    const apiKey = process.env.MAGIC_HOUR_API_KEY;
+    // =========================
+    // POST: 画像を受け取りAI処理開始
+    // =========================
 
-    if (!apiKey) {
-      return res.status(500).json({
-        error: "MAGIC_HOUR_API_KEY is not configured"
-      });
-    }
+    if (req.method === "POST") {
 
-    const { image, scaleFactor = 2 } = req.body || {};
+      const { image, scaleFactor = 2 } = req.body || {};
 
-    if (!image) {
-      return res.status(400).json({
-        error: "image is required"
-      });
-    }
-
-    if (![2, 4].includes(Number(scaleFactor))) {
-      return res.status(400).json({
-        error: "scaleFactor must be 2 or 4"
-      });
-    }
-
-    // Base64 → binary
-    const matches = image.match(/^data:(.+);base64,(.+)$/);
-
-    if (!matches) {
-      return res.status(400).json({
-        error: "Invalid image format"
-      });
-    }
-
-    const contentType = matches[1];
-    const base64Data = matches[2];
-
-    const binary = Buffer.from(base64Data, "base64");
-
-    // ① Magic HourからアップロードURLを取得
-    const uploadResponse = await fetch(
-      "https://api.magichour.ai/v1/files/upload-urls",
-      {
-        method: "POST",
-        headers: {
-          "Authorization": `Bearer ${apiKey}`,
-          "Content-Type": "application/json",
-          "Accept": "application/json"
-        },
-        body: JSON.stringify({
-          files: [
-            {
-              filename: "image.png",
-              content_type: contentType
-            }
-          ]
-        })
+      if (!image) {
+        return res.status(400).json({
+          error: "画像がありません"
+        });
       }
-    );
 
-    const uploadData = await uploadResponse.json();
-
-    if (!uploadResponse.ok) {
-      return res.status(uploadResponse.status).json({
-        error: uploadData
-      });
-    }
-
-    const fileInfo =
-      uploadData.items?.[0] ||
-      uploadData.files?.[0];
-
-    if (!fileInfo) {
-      return res.status(500).json({
-        error: "Upload information was not returned",
-        details: uploadData
-      });
-    }
-
-    // ② Magic Hourのストレージへ画像をアップロード
-    const putResponse = await fetch(
-      fileInfo.upload_url,
-      {
-        method: "PUT",
-        headers: {
-          "Content-Type": contentType
-        },
-        body: binary
+      if (![2, 4].includes(Number(scaleFactor))) {
+        return res.status(400).json({
+          error: "scaleFactor must be 2 or 4"
+        });
       }
-    );
 
-    if (!putResponse.ok) {
-      const text = await putResponse.text();
+      // Base64画像を分解
+      const match = image.match(
+        /^data:(image\/[a-zA-Z0-9.+-]+);base64,(.+)$/
+      );
 
-      return res.status(putResponse.status).json({
-        error: "Image upload failed",
-        details: text
-      });
-    }
+      if (!match) {
+        return res.status(400).json({
+          error: "画像形式を読み取れませんでした"
+        });
+      }
 
-    // ③ AIアップスケール開始
-    const upscaleResponse = await fetch(
-      "https://api.magichour.ai/v1/ai-image-upscaler",
-      {
-        method: "POST",
-        headers: {
-          "Authorization": `Bearer ${apiKey}`,
-          "Content-Type": "application/json",
-          "Accept": "application/json"
-        },
-        body: JSON.stringify({
-          name: "My Image Upscaler",
-          scale_factor: Number(scaleFactor),
-          style: {
-            mode: "preserve"
+      const contentType = match[1];
+      const base64Data = match[2];
+
+      const extensionMap = {
+        "image/jpeg": "jpg",
+        "image/jpg": "jpg",
+        "image/png": "png",
+        "image/webp": "webp",
+        "image/heic": "heic",
+        "image/heif": "heif",
+        "image/avif": "avif",
+        "image/tiff": "tiff",
+        "image/bmp": "bmp"
+      };
+
+      const extension =
+        extensionMap[contentType] || "jpg";
+
+      const binary = Buffer.from(base64Data, "base64");
+
+      // =========================
+      // ① Magic HourへアップロードURLを要求
+      // =========================
+
+      const uploadResponse = await fetch(
+        "https://api.magichour.ai/v1/files/upload-urls",
+        {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${apiKey}`,
+            "Content-Type": "application/json",
+            "Accept": "application/json"
           },
-          assets: {
-            image_file_path: fileInfo.file_path
-          }
-        })
+          body: JSON.stringify({
+            items: [
+              {
+                type: "image",
+                extension: extension
+              }
+            ]
+          })
+        }
+      );
+
+      const uploadData = await uploadResponse.json();
+
+      if (!uploadResponse.ok) {
+        return res.status(uploadResponse.status).json({
+          error: uploadData
+        });
       }
-    );
 
-    const upscaleData = await upscaleResponse.json();
+      const uploadInfo = uploadData.items?.[0];
 
-    if (!upscaleResponse.ok) {
-      return res.status(upscaleResponse.status).json({
-        error: upscaleData
+      if (!uploadInfo) {
+        return res.status(500).json({
+          error: "アップロードURLを取得できませんでした"
+        });
+      }
+
+      // =========================
+      // ② Magic Hourへ画像アップロード
+      // =========================
+
+      const putResponse = await fetch(
+        uploadInfo.upload_url,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": contentType
+          },
+          body: binary
+        }
+      );
+
+      if (!putResponse.ok) {
+        const errorText = await putResponse.text();
+
+        return res.status(putResponse.status).json({
+          error: "画像アップロードに失敗しました",
+          details: errorText
+        });
+      }
+
+      // =========================
+      // ③ Creative AI Upscaler開始
+      // =========================
+
+      const upscaleResponse = await fetch(
+        "https://api.magichour.ai/v1/ai-image-upscaler",
+        {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${apiKey}`,
+            "Content-Type": "application/json",
+            "Accept": "application/json"
+          },
+          body: JSON.stringify({
+            name: "AI Image Upscaler",
+            scale_factor: Number(scaleFactor),
+
+            style: {
+              enhancement: "Creative"
+            },
+
+            assets: {
+              image_file_path: uploadInfo.file_path
+            }
+          })
+        }
+      );
+
+      const upscaleData = await upscaleResponse.json();
+
+      if (!upscaleResponse.ok) {
+        return res.status(upscaleResponse.status).json({
+          error: upscaleData
+        });
+      }
+
+      return res.status(200).json({
+        success: true,
+        project_id: upscaleData.id,
+        credits_charged: upscaleData.credits_charged
       });
     }
 
-    // ④ プロジェクトIDを返す
-    return res.status(200).json({
-      success: true,
-      project_id: upscaleData.id,
-      credits_charged: upscaleData.credits_charged
+    // =========================
+    // GET: 処理状況を確認
+    // =========================
+
+    if (req.method === "GET") {
+
+      const projectId = req.query?.project_id;
+
+      if (!projectId) {
+        return res.status(400).json({
+          error: "project_id is required"
+        });
+      }
+
+      const statusResponse = await fetch(
+        `https://api.magichour.ai/v1/image-projects/${encodeURIComponent(projectId)}`,
+        {
+          method: "GET",
+          headers: {
+            "Authorization": `Bearer ${apiKey}`,
+            "Accept": "application/json"
+          }
+        }
+      );
+
+      const statusData = await statusResponse.json();
+
+      if (!statusResponse.ok) {
+        return res.status(statusResponse.status).json({
+          error: statusData
+        });
+      }
+
+      const outputUrl =
+        statusData.downloads?.[0]?.url || null;
+
+      return res.status(200).json({
+        status: statusData.status,
+        output_url: outputUrl
+      });
+    }
+
+    return res.status(405).json({
+      error: "Method not allowed"
     });
 
   } catch (error) {
+
     console.error(error);
 
     return res.status(500).json({
