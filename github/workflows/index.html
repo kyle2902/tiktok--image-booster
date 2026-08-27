@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Image Upscaler</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
+      background: #f5f5f7;
+      color: #1d1d1f;
+    }
+
+    .container {
+      max-width: 500px;
+      margin: 0 auto;
+      padding: 40px 20px;
+    }
+
+    h1 {
+      text-align: center;
+      font-size: 28px;
+      margin-bottom: 8px;
+    }
+
+    .subtitle {
+      text-align: center;
+      color: #6e6e73;
+      margin-bottom: 30px;
+    }
+
+    .upload {
+      background: white;
+      border-radius: 20px;
+      padding: 35px 20px;
+      text-align: center;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+    }
+
+    input[type="file"] {
+      display: none;
+    }
+
+    .button {
+      display: inline-block;
+      background: #007aff;
+      color: white;
+      padding: 14px 24px;
+      border-radius: 14px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    #preview {
+      width: 100%;
+      margin-top: 25px;
+      border-radius: 15px;
+      display: none;
+    }
+
+    .info {
+      margin-top: 20px;
+      font-size: 14px;
+      color: #6e6e73;
+    }
+
+    .upscale {
+      width: 100%;
+      margin-top: 20px;
+      padding: 15px;
+      border: none;
+      border-radius: 14px;
+      background: #1d1d1f;
+      color: white;
+      font-size: 16px;
+      font-weight: 600;
+      display: none;
+    }
+
+    .message {
+      text-align: center;
+      margin-top: 20px;
+      color: #6e6e73;
+      font-size: 14px;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="container">
+
+    <h1>AI Image Upscaler</h1>
+
+    <div class="subtitle">
+      画像を高解像度にアップスケール
+    </div>
+
+    <div class="upload">
+
+      <label for="imageInput" class="button">
+        画像を選択
+      </label>
+
+      <input
+        type="file"
+        id="imageInput"
+        accept="image/*"
+      >
+
+      <img id="preview">
+
+      <div id="info" class="info">
+        iPhoneから画像を選択してください
+      </div>
+
+      <button id="upscaleButton" class="upscale">
+        高解像度化する
+      </button>
+
+    </div>
+
+    <div id="message" class="message"></div>
+
+  </div>
+
+<script>
+
+const imageInput = document.getElementById("imageInput");
+const preview = document.getElementById("preview");
+const info = document.getElementById("info");
+const upscaleButton = document.getElementById("upscaleButton");
+const message = document.getElementById("message");
+
+imageInput.addEventListener("change", function() {
+
+  const file = this.files[0];
+
+  if (!file) {
+    return;
+  }
+
+  const url = URL.createObjectURL(file);
+
+  preview.src = url;
+  preview.style.display = "block";
+
+  info.textContent =
+    file.name + " を選択しました";
+
+  upscaleButton.style.display = "block";
+
+  message.textContent = "";
+
+});
+
+upscaleButton.addEventListener("click", function() {
+
+  message.textContent =
+    "現在、高解像度化の準備中です…";
+
+});
+
+</script>
+
+</body>
+</html>
