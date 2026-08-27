@@ -6,129 +6,131 @@
 <title>AI Image Upscaler</title>
 
 <style>
-* {
-  box-sizing: border-box;
+*{box-sizing:border-box}
+
+body{
+  margin:0;
+  background:#f5f5f7;
+  color:#1d1d1f;
+  font-family:-apple-system,BlinkMacSystemFont,"Helvetica Neue",sans-serif
 }
 
-body {
-  margin: 0;
-  background: #f5f5f7;
-  color: #1d1d1f;
-  font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
+.container{
+  max-width:520px;
+  margin:auto;
+  padding:35px 20px
 }
 
-.container {
-  max-width: 520px;
-  margin: auto;
-  padding: 35px 20px;
+h1{
+  text-align:center;
+  font-size:30px;
+  margin-bottom:8px
 }
 
-h1 {
-  text-align: center;
-  font-size: 30px;
+.subtitle{
+  text-align:center;
+  color:#6e6e73;
+  margin-bottom:30px
 }
 
-.subtitle {
-  text-align: center;
-  color: #6e6e73;
-  margin-bottom: 30px;
+.card{
+  background:white;
+  padding:25px;
+  border-radius:22px;
+  box-shadow:0 5px 25px rgba(0,0,0,.07)
 }
 
-.card {
-  background: white;
-  padding: 25px;
-  border-radius: 22px;
+.upload{
+  display:block;
+  width:100%;
+  padding:16px;
+  text-align:center;
+  background:#007aff;
+  color:white;
+  border-radius:14px;
+  font-weight:600
 }
 
-.upload {
-  display: block;
-  width: 100%;
-  padding: 16px;
-  text-align: center;
-  background: #007aff;
-  color: white;
-  border-radius: 14px;
-  font-weight: 600;
+input{display:none}
+
+.preview,#result{
+  width:100%;
+  margin-top:20px;
+  border-radius:15px;
+  display:none
 }
 
-input {
-  display: none;
+.info{
+  margin-top:15px;
+  font-size:14px;
+  color:#6e6e73;
+  text-align:center
 }
 
-.preview,
-#result {
-  width: 100%;
-  margin-top: 20px;
-  border-radius: 15px;
-  display: none;
+.settings{
+  margin-top:20px;
+  display:none
 }
 
-.info {
-  margin-top: 15px;
-  font-size: 14px;
-  color: #6e6e73;
-  text-align: center;
+.settings-title{
+  font-weight:600;
+  margin-bottom:10px
 }
 
-.settings {
-  margin-top: 20px;
-  display: none;
+.scale-buttons{
+  display:flex;
+  gap:10px
 }
 
-.settings-title {
-  font-weight: 600;
-  margin-bottom: 10px;
+.scale{
+  flex:1;
+  padding:13px;
+  border:1px solid #ddd;
+  border-radius:12px;
+  background:white;
+  font-weight:600
 }
 
-.scale-buttons {
-  display: flex;
-  gap: 10px;
+.scale.selected{
+  background:#007aff;
+  color:white;
+  border-color:#007aff
 }
 
-.scale {
-  flex: 1;
-  padding: 13px;
-  border: 1px solid #ddd;
-  border-radius: 12px;
-  background: white;
-  font-weight: 600;
+#upscale{
+  width:100%;
+  margin-top:20px;
+  padding:16px;
+  border:0;
+  border-radius:14px;
+  background:#1d1d1f;
+  color:white;
+  font-size:16px;
+  font-weight:600;
+  display:none
 }
 
-.scale.selected {
-  background: #007aff;
-  color: white;
-  border-color: #007aff;
+#upscale:disabled{
+  opacity:.5
 }
 
-button#upscale {
-  width: 100%;
-  margin-top: 20px;
-  padding: 16px;
-  border: 0;
-  border-radius: 14px;
-  background: #1d1d1f;
-  color: white;
-  font-size: 16px;
-  font-weight: 600;
-  display: none;
+#message{
+  text-align:center;
+  margin-top:20px;
+  color:#6e6e73;
+  line-height:1.5
 }
 
-#message {
-  text-align: center;
-  margin-top: 20px;
-  color: #6e6e73;
-}
-
-#download {
-  display: none;
-  margin-top: 15px;
-  padding: 15px;
-  text-align: center;
-  text-decoration: none;
-  background: #34c759;
-  color: white;
-  border-radius: 14px;
-  font-weight: 600;
+#download{
+  display:none;
+  margin-top:15px;
+  padding:15px;
+  text-align:center;
+  text-decoration:none;
+  background:#34c759;
+  color:white;
+  border-radius:14px;
+  font-weight:600
 }
 </style>
 </head>
@@ -165,11 +167,11 @@ AIで画像を高解像度化
 
 <div class="scale-buttons">
 
-<button class="scale selected" data-scale="2">
+<button type="button" class="scale selected" data-scale="2">
 ×2
 </button>
 
-<button class="scale" data-scale="4">
+<button type="button" class="scale" data-scale="4">
 ×4
 </button>
 
@@ -177,7 +179,7 @@ AIで画像を高解像度化
 
 </div>
 
-<button id="upscale">
+<button type="button" id="upscale">
 AIで高画質化する
 </button>
 
@@ -207,11 +209,11 @@ const download = document.getElementById("download");
 let selectedFile = null;
 let selectedScale = 2;
 
-input.addEventListener("change", function() {
+input.addEventListener("change", function(){
 
   const file = this.files[0];
 
-  if (!file) return;
+  if(!file) return;
 
   selectedFile = file;
 
@@ -231,7 +233,7 @@ input.addEventListener("change", function() {
 
 document.querySelectorAll(".scale").forEach(button => {
 
-  button.addEventListener("click", function() {
+  button.addEventListener("click", function(){
 
     document.querySelectorAll(".scale")
       .forEach(b => b.classList.remove("selected"));
@@ -244,93 +246,146 @@ document.querySelectorAll(".scale").forEach(button => {
 
 });
 
-upscaleButton.addEventListener("click", async function() {
+upscaleButton.addEventListener("click", async function(){
 
-  if (!selectedFile) return;
+  if(!selectedFile) return;
 
-  message.textContent = "AIで高画質化しています…";
   upscaleButton.disabled = true;
+  message.textContent = "画像をアップロードしています…";
 
-  try {
-
-    /*
-      現在の画像をBase64に変換
-    */
+  try{
 
     const base64 = await fileToBase64(selectedFile);
 
-    const response = await fetch("/api/upscale", {
+    const response = await fetch("/api/upscale",{
 
-      method: "POST",
+      method:"POST",
 
-      headers: {
-        "Content-Type": "application/json"
+      headers:{
+        "Content-Type":"application/json"
       },
 
-      body: JSON.stringify({
-        image: base64,
-        scaleFactor: selectedScale
+      body:JSON.stringify({
+        image:base64,
+        scaleFactor:selectedScale
       })
 
     });
 
     const data = await response.json();
 
-    if (!response.ok) {
+    if(!response.ok){
       throw new Error(
         data.error
           ? JSON.stringify(data.error)
-          : "AI処理に失敗しました"
+          : "AI処理の開始に失敗しました"
       );
     }
 
-    /*
-      APIから返ってきた画像URLを表示
-    */
-
-    const outputUrl =
-      data.image_url ||
-      data.url ||
-      data.output_url;
-
-    if (!outputUrl) {
-      throw new Error("出力画像が見つかりませんでした");
+    if(!data.project_id){
+      throw new Error("プロジェクトIDを取得できませんでした");
     }
 
-    result.src = outputUrl;
-    result.style.display = "block";
-
-    download.href = outputUrl;
-    download.style.display = "block";
-
     message.textContent =
-      `AI高画質化完了（×${selectedScale}）`;
+      "AIが画像を処理しています…";
 
-  } catch (error) {
+    await waitForResult(data.project_id);
+
+  }catch(error){
 
     console.error(error);
 
     message.textContent =
       "エラー: " + error.message;
 
-  }
+    upscaleButton.disabled = false;
 
-  upscaleButton.disabled = false;
+  }
 
 });
 
-function fileToBase64(file) {
+async function waitForResult(projectId){
 
-  return new Promise((resolve, reject) => {
+  const maxAttempts = 60;
+
+  for(let i=0;i<maxAttempts;i++){
+
+    await sleep(3000);
+
+    const response = await fetch(
+      "/api/upscale?project_id=" +
+      encodeURIComponent(projectId)
+    );
+
+    const data = await response.json();
+
+    if(!response.ok){
+      throw new Error(
+        data.error
+          ? JSON.stringify(data.error)
+          : "処理状況を取得できませんでした"
+      );
+    }
+
+    if(data.status === "complete"){
+
+      const outputUrl = data.output_url;
+
+      if(!outputUrl){
+        throw new Error("完成画像URLがありません");
+      }
+
+      result.src = outputUrl;
+      result.style.display = "block";
+
+      download.href = outputUrl;
+      download.style.display = "block";
+
+      message.textContent =
+        "AI高画質化が完了しました！";
+
+      upscaleButton.disabled = false;
+
+      return;
+    }
+
+    if(
+      data.status === "failed" ||
+      data.status === "error"
+    ){
+      throw new Error("AI画像処理に失敗しました");
+    }
+
+    message.textContent =
+      "AI処理中… " + Math.round((i+1)/maxAttempts*100) + "%";
+  }
+
+  throw new Error(
+    "処理が長時間続いています。しばらくしてから確認してください。"
+  );
+}
+
+function fileToBase64(file){
+
+  return new Promise((resolve,reject)=>{
 
     const reader = new FileReader();
 
     reader.onload = () => resolve(reader.result);
+
     reader.onerror = reject;
 
     reader.readAsDataURL(file);
 
   });
+
+}
+
+function sleep(ms){
+
+  return new Promise(resolve =>
+    setTimeout(resolve,ms)
+  );
 
 }
 
